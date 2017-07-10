@@ -1,6 +1,7 @@
 
 /* any user should be allowed these */
 INSERT INTO grant_types(name,description) VALUES('clone',"can clone public virtual machines.");
+INSERT INTO grant_types(name,description) VALUES('start',"can start own virtual machines.");
 INSERT INTO grant_types(name,description) VALUES('change_settings',"can change the settings of owned virtual machines.");
 INSERT INTO grant_types(name,description) VALUES('remove',"can remove any virtual machines owned by the user.");
 INSERT INTO grant_types(name,description) VALUES('screenshot',"can take a screenshot of any virtual machine owned by the user.");
@@ -14,6 +15,7 @@ INSERT INTO grant_types(name,description) VALUES('change_settings_clones',"can c
 INSERT INTO grant_types(name,description) VALUES('remove_clone',"can remove clones from virtual machines owned by the user.");
 INSERT INTO grant_types(name,description) VALUES('shutdown_clone',"can shutdown clones from virtual machines owned by the user.");
 INSERT INTO grant_types(name,description) VALUES('hibernate_clone',"can hibernate clones from virtual machines owned by the user.");
+INSERT INTO grant_types(name,description) VALUES('start_clone',"can start clones from virtual machines owned by the user.");
 
 /* operators should be allowed these */
 INSERT INTO grant_types(name,description) VALUES('change_settings_all',"can change the settings of any virtual machines.");
@@ -26,6 +28,7 @@ INSERT INTO grant_types(name,description) VALUES('remove_all',"can remove any vi
 INSERT INTO grant_types(name,description) VALUES('shutdown_all',"can shutdown any virtual machine.");
 INSERT INTO grant_types(name,description) VALUES('hibernate_all',"can hibernate any virtual machine.");
 INSERT INTO grant_types(name,description) VALUES('screenshot_all',"can take a screenshot of any virtual machine.");
+INSERT INTO grant_types(name,description) VALUES('start_all',"can start any virtual machine.");
 
 INSERT INTO grant_types(name,description) VALUES('grant','can grant permissions to other users');
 INSERT INTO grant_types(name,description) VALUES('manage_users','can manage users.');
