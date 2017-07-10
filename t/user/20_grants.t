@@ -31,6 +31,7 @@ sub test_defaults {
     ok($user->can_screenshot);
 
     ok($user->can_remove);
+    ok($user->can_start);
 
     ok(!$user->can_remove_clone);
 
@@ -59,6 +60,8 @@ sub test_defaults {
             is($user->can_do($perm),undef,$perm);
         }
     }
+
+    $user->remove();
 }
 
 sub test_admin {
@@ -240,6 +243,8 @@ sub test_remove {
     eval { $domain2->remove(user_admin())};
     is($@,'');
 
+    $user->remove();
+
 }
 
 sub test_shutdown_all {
@@ -277,8 +282,75 @@ sub test_shutdown_all {
     is($domain->is_active,1);
 
     $domain->remove($usera);
+
+    $user->remove();
+    $usera->remove();
+
 }
 
+sub test_start {
+    my $vm_name = shift;
+
+    my $user = create_user("oper_start$$","bar");
+    my $usera = create_user("admin_st$$","bar",1);
+
+    my $rvd_back = rvd_back();
+
+    is($user->can_start(),1) or exit;
+    is($user->can_start_clone(),undef);
+    is($user->can_start_all(),undef);
+
+    my $domain = create_domain($vm_name,$usera);
+    $domain->prepare_base($usera);
+
+    my $clone = $domain->clone(name => new_domain_name, user => $usera);
+    $clone->shutdown_now($usera)    if $clone->is_active;
+
+    eval { $clone->start($user); };
+    is($@,'');
+    is($clone->is_active,1) or return;
+    
+    $clone->shutdown_now($usera)    if $clone->is_active();
+    is($clone->is_active,0) or return;
+
+    $usera->revoke($user,'start');
+    is($user->can_start(),0);
+
+    eval { $clone->start($user); };
+    like($@,qr'.');
+    is($clone->is_active,0) or return;
+    $clone->shutdown_now($usera);
+
+    $usera->grant($user,'start');
+    is($user->can_start(),1);
+
+    # start clone:
+    # user allowed to start a clone from owned domain
+    my $clone2 = $clone->clone(name => new_domain_name,user => $usera);
+
+    eval { $clone2->start($user); };
+    like($@,qr'.');
+    is($clone2->is_active,0) or return;
+
+    $usera->grant($user,'start_clone');
+    is($user->can_start_clone(),1);
+
+    eval { $clone2->start($user); };
+    is($@,'');
+    is($clone2->is_active,1) or return;
+    $clone2->shutdown_now($user);
+
+    $usera->revoke($user,'start_clone');
+    is($user->can_start_clone(),0);
+
+    eval { $clone2->start($user); };
+    like($@,qr'.');
+    is($clone2->is_active,0) or return;
+}
+
+# TODO
+sub test_start_all {
+}
 ##########################################################
 
 test_defaults();
@@ -287,6 +359,8 @@ test_grant();
 
 test_operator();
 
+test_start('Void');
+
 test_shutdown_clone('Void');
 test_shutdown_all('Void');
 
@@ -294,4 +368,5 @@ test_remove('Void');
 test_remove_clone('Void');
 #test_remove_all('Void');
 
+test_start_all('Void');
 done_testing();
