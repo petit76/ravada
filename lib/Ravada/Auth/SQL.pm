@@ -119,7 +119,7 @@ sub add_user {
 
     _init_connector();
 
-    my $name= $args{name};
+    my $name= delete $args{name} || confess "Missing name";
     my $password = $args{password};
     my $is_admin = ($args{is_admin} or 0);
     my $is_temporary= ($args{is_temporary} or 0);
@@ -145,13 +145,15 @@ sub add_user {
     $sth->execute($name,$password,$is_admin,$is_temporary, $is_external);
     $sth->finish;
 
-    return if !$is_admin;
-
-    my $id_grant = _search_id_grant('grant');
     $sth = $$CON->dbh->prepare("SELECT id FROM users WHERE name = ? ");
     $sth->execute($name);
     my ($id_user) = $sth->fetchrow;
     $sth->finish;
+
+    my $user = Ravada::Auth::SQL->search_by_id($id_user);
+    return if !$is_admin;
+
+    my $id_grant = _search_id_grant('grant');
 
     $sth = $$CON->dbh->prepare(
             "INSERT INTO grants_user "
@@ -161,7 +163,6 @@ sub add_user {
     $sth->execute($id_grant, $id_user);
     $sth->finish;
 
-    my $user = Ravada::Auth::SQL->search_by_id($id_user);
     $user->grant_admin_permissions($user);
 }
 
@@ -497,6 +498,7 @@ Grant an user permissions for normal users
 
 sub grant_user_permissions($self,$user) {
     $self->grant($user, 'clone');
+    $self->grant($user, 'start');
     $self->grant($user, 'change_settings');
     $self->grant($user, 'remove');
     $self->grant($user, 'screenshot');
