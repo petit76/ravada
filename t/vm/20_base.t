@@ -43,7 +43,7 @@ sub test_create_domain {
 
     my $domain;
     eval { $domain = $vm->create_domain(name => $name
-                    , id_owner => $USER->id
+                    , id_owner => user_admin->id
                     , @{$ARG_CREATE_DOM{$vm_name}})
     };
 
@@ -105,9 +105,9 @@ sub test_prepare_base {
     my $domain = shift;
 
     test_files_base($domain,0);
-    $domain->shutdown_now($USER)    if $domain->is_active();
+    $domain->shutdown_now(user_admin())    if $domain->is_active();
 
-    eval { $domain->prepare_base( $USER) };
+    eval { $domain->prepare_base( user_admin()) };
     ok(!$@, $@);
     ok($domain->is_base);
     is($domain->is_active(),0);
@@ -124,7 +124,7 @@ sub test_prepare_base {
         ok($dom_front->{is_base});
     }
 
-    eval { $domain->prepare_base( $USER) };
+    eval { $domain->prepare_base( user_admin() ) };
     ok($@ && $@ =~ /already/i,"[$vm_name] Don't prepare if already "
         ."prepared and file haven't changed "
         .". Error: ".($@ or '<UNDEF>'));
@@ -138,7 +138,7 @@ sub test_prepare_base {
 
     touch_mtime(@disk);
 
-    eval { $domain->prepare_base( $USER) };
+    eval { $domain->prepare_base( user_admin() ) };
     is($@,'');
     ok($domain->is_base);
 
@@ -180,15 +180,15 @@ sub test_prepare_base {
 
 
     touch_mtime(@disk);
-    eval { $domain->prepare_base($USER) };
+    eval { $domain->prepare_base(user_admin()) };
     ok($@ && $@ =~ /has \d+ clones/i
         ,"[$vm_name] Don't prepare if there are clones ".($@ or '<UNDEF>'));
     ok($domain->is_base);
 
-    $domain_clone->remove($USER);
+    $domain_clone->remove(user_admin());
 
     touch_mtime(@disk);
-    eval { $domain->prepare_base($USER) };
+    eval { $domain->prepare_base(user_admin() ) };
 
     ok(!$@,"[$vm_name] Error preparing base after clone removed :'".($@ or '')."'");
     ok($domain->is_base,"[$vm_name] Expecting domain is_base=1 , got :".$domain->is_base);
@@ -207,15 +207,15 @@ sub test_prepare_base_active {
     my $domain = test_create_domain($vm_name);
 
     ok(!$domain->is_base,"Domain ".$domain->name." should not be base") or return;
-    eval { $domain->start($USER) if !$domain->is_active() };
+    eval { $domain->start(user_admin) if !$domain->is_active() };
     ok(!$@,$@) or exit;
-    eval { $domain->resume($USER)  if $domain->is_paused()  };
+    eval { $domain->resume(user_admin)  if $domain->is_paused()  };
     ok(!$@,$@);
 
     ok($domain->is_active,"[$vm_name] Domain ".$domain->name." should be active") or return;
     ok(!$domain->is_paused,"[$vm_name] Domain ".$domain->name." should not be paused") or return;
 
-    eval{ $domain->prepare_base($USER) };
+    eval{ $domain->prepare_base(user_admin()) };
     ok(!$@,"[$vm_name] Prepare base, expecting error='', got '$@'") or exit;
 
     ok($domain->is_active,"[$vm_name] Domain ".$domain->name." should be active") or return;
@@ -259,13 +259,13 @@ sub test_remove_base {
     my @files0 = $domain->list_files_base();
     ok(!scalar @files0,"Expecting no files base, got ".Dumper(\@files0)) or return;
 
-    $domain->prepare_base($USER);
+    $domain->prepare_base(user_admin());
     ok($domain->is_base,"Domain ".$domain->name." should be base") or return;
 
     my @files = $domain->list_files_base();
     ok(scalar @files,"Expecting files base, got ".Dumper(\@files)) or return;
 
-    $domain->remove_base($USER);
+    $domain->remove_base(user_admin());
     ok(!$domain->is_base,"Domain ".$domain->name." should be base") or return;
 
     for my $file (@files) {
@@ -291,7 +291,7 @@ sub test_dont_remove_base_cloned {
     my $vm_name = shift;
 
     my $domain = test_create_domain($vm_name);
-    $domain->prepare_base($USER);
+    $domain->prepare_base(user_admin() );
     ok($domain->is_base,"[$vm_name] expecting domain is base, got "
                         .$domain->is_base);
 
@@ -318,7 +318,7 @@ sub test_dont_remove_base_cloned {
 
     $clone->remove($USER);
 
-    eval {$domain->remove_base($USER)};
+    eval {$domain->remove_base(user_admin)};
     ok(!$@,"Expecting not error removing base with clones, got '$@'");
     ok(!$domain->is_base,"[$vm_name] expecting domain is base, got "
                         .$domain->is_base);
@@ -334,9 +334,10 @@ sub test_private_base {
     my $vm = rvd_back->search_vm($vm_name);
 
     my $domain = test_create_domain($vm_name);
-    $domain->prepare_base($USER);
+    $domain->prepare_base(user_admin());
+    is($domain->is_base,1)      or exit;
 
-    my $clone_name = new_domain_name();
+    my $clone_name = new_domain_name()."_clone";
 
     my $clone;
     eval { $clone = $domain->clone(user => $USER, name => $clone_name); };
@@ -348,15 +349,22 @@ sub test_private_base {
     # admin can clone
     eval { $clone = $domain->clone(user => user_admin, name => $clone_name); };
     is($@,'');
+    isnt($domain->name, $clone->name);
+    isnt($domain->id, $clone->id);
 
     $clone2 = $vm->search_domain($clone_name);
     ok($clone2,"Expecting a clone");
+    is($domain->is_base,1)      or exit;
     $clone->remove(user_admin)  if $clone;
+    is($domain->is_base,1, $domain->name)      or exit;
 
     # when is public, any can clone
     $domain->is_public(1);
+    is($domain->is_public,1)    or exit;
+    is($domain->is_base,1)      or exit;
+
     eval { $clone = $domain->clone(user => $USER, name => $clone_name); };
-    is($@,'');
+    is($@,'') or exit;
 
     $clone2 = $vm->search_domain($clone_name);
     ok($clone2,"Expecting a clone");

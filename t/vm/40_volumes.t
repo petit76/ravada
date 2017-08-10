@@ -23,7 +23,7 @@ my $RVD_BACK = rvd_back($test->connector, $FILE_CONFIG);
 my @ARG_RVD = ( config => $FILE_CONFIG,  connector => $test->connector);
 
 my @VMS = keys %ARG_CREATE_DOM;
-my $USER = create_user("foo","bar");
+my $USER = create_user("foo","bar",1);
 #######################################################################33
 
 sub test_create_domain {

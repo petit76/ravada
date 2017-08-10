@@ -20,7 +20,7 @@ my $FILE_CONFIG = 't/etc/ravada.conf';
 my @ARG_RVD = ( config => $FILE_CONFIG,  connector => $test->connector);
 
 init($test->connector, $FILE_CONFIG);
-my $USER = create_user("foo","bar");
+my $USER = create_user("foo","bar", 1);
 
 my $CHAIN = 'RAVADA';
 
