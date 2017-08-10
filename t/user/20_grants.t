@@ -290,6 +290,7 @@ sub test_create_domain {
     my $vm = rvd_back->search_vm($vm_name);
 
     my $user = create_user("oper_c$$","bar");
+    is($user->can_create_domain(), undef);
     my $usera = create_user("admin_c$$","bar",1);
 
     my $base = create_domain($vm_name);
@@ -326,6 +327,7 @@ sub test_create_domain {
 
     $usera->grant($user,'create_domain');
     is($user->can_create_domain,1) or return;
+    is($user->is_operator,1) or return;
 
     $domain_name = new_domain_name();
     $create_args{name} = $domain_name;
