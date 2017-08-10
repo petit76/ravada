@@ -109,6 +109,7 @@ sub search_domain {
         return if !defined $id;#
         return $domain;
     }
+    return;
 }
 
 sub list_networks {
