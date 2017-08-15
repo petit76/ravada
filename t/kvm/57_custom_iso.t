@@ -15,8 +15,6 @@ my $test = Test::SQL::Data->new(config => 't/etc/sql.conf');
 
 init($test->connector, $FILE_CONFIG);
 
-my $USER = create_user('foo','bar');
-
 #########################################################################
 #
 # test a new domain withou an ISO file
@@ -38,7 +36,7 @@ sub test_custom_iso {
 
     my $domain;
     eval {$domain = $vm->create_domain(name => $name
-                    , id_owner => $USER->id
+                    , id_owner => user_admin->id
                     , id_iso => $id_iso
                     , active => 0
                     , %args_create
@@ -47,7 +45,7 @@ sub test_custom_iso {
     like($@,qr'Template .* has no URL'i);
     ok(!$domain,"Expecting no domain created, got ".($domain or '<UNDEF>'));
 
-    $domain->remove($USER)  if $domain;
+    $domain->remove(user_admin)  if $domain;
 
     my $iso_file = $vm->dir_img."/".new_domain_name().".iso";
     open my $out, ">",$iso_file or die $!;
@@ -55,7 +53,7 @@ sub test_custom_iso {
     close $out;
 
     eval {$domain = $vm->create_domain(name => $name
-                    , id_owner => $USER->id
+                    , id_owner => user_admin->id
                     , id_iso => $id_iso
                     , active => 0
                     , iso_file => $iso_file
@@ -66,7 +64,7 @@ sub test_custom_iso {
     is($@,'');
     ok($domain,"Expecting domain created, got ".($domain or '<UNDEF>'));
 
-    eval {   $domain->start($USER) if !$domain->is_active; };
+    eval {   $domain->start(user_admin) if !$domain->is_active; };
     ok(!$@,"Expecting no error, got ".($@ or ''));
 
     unlink $iso_file if -e $iso_file;

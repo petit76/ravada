@@ -18,7 +18,6 @@ my $RVD_BACK = rvd_back($test->connector);
 my $RVD_FRONT= rvd_front($test->connector);
 
 my @VMS = reverse keys %ARG_CREATE_DOM;
-my $USER = create_user("foo","bar");
 
 #########################################################################
 
@@ -81,7 +80,7 @@ sub test_create_domain {
 
     my $domain;
     eval { $domain = $vm->create_domain(name => $name
-                    , id_owner => $USER->id
+                    , id_owner => user_admin->id
                     , @{$ARG_CREATE_DOM{$vm_name}})
     };
 
@@ -109,7 +108,7 @@ sub test_remove_domain {
     for my $file (@volumes) {
         ok(-e $file,"Expecting volume $file exists, got : ".(-e $file or 0));
     }
-    $domain->remove($USER);
+    $domain->remove(user_admin);
     for my $file (@volumes) {
         ok(!-e $file,"Expecting no volume $file exists, got : ".(-e $file or 0));
     }
@@ -118,7 +117,7 @@ sub test_remove_domain {
 
 sub test_base {
     my $domain = shift;
-    eval { $domain->prepare_base($USER) };
+    eval { $domain->prepare_base(user_admin) };
     is($@,'',"Prepare base") or exit;
 
     my @files_base = $domain->list_files_base();
@@ -132,7 +131,7 @@ sub test_base {
 
     isnt($path0,$path1);
 
-    $domain->remove_base($USER);
+    $domain->remove_base(user_admin);
 
     for my $file (@files_base) {
         ok(!-e $file,"Expecting volume $file doesn't exist, got : ".(-e $file or 0));
@@ -154,7 +153,7 @@ sub test_volumes_in_two_pools {
     $vm->default_storage_pool_name($pool_name1);
     my $domain;
     eval { $domain = $vm->create_domain(name => $name
-                    , id_owner => $USER->id
+                    , id_owner => user_admin->id
                     , @{$ARG_CREATE_DOM{$vm_name}})
     };
 
@@ -181,7 +180,7 @@ sub test_volumes_in_two_pools {
     for my $file (@volumes) {
         ok(-e $file,"Expecting volume $file exists, got : ".(-e $file or 0));
     }
-    $domain->remove($USER);
+    $domain->remove(user_admin);
     for my $file (@volumes) {
         ok(!-e $file,"Expecting volume $file doesn't exist, got : ".(-e $file or 0));
     }

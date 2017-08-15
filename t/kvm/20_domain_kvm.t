@@ -16,7 +16,6 @@ use_ok('Ravada');
 my $test = Test::SQL::Data->new( config => 't/etc/sql.conf');
 
 my $RAVADA = rvd_back($test->connector , 't/etc/ravada.conf');
-my $USER = create_user('foo','bar');
 
 sub test_vm_kvm {
     my $vm = $RAVADA->search_vm('kvm');
@@ -29,7 +28,7 @@ sub test_vm_kvm {
 }
 sub test_remove_domain {
     my $name = shift;
-    my $user = (shift or $USER);
+    my $user = (shift or user_admin);
 
     my $domain;
     $domain = $RAVADA->search_domain($name,1);
@@ -50,7 +49,7 @@ sub test_remove_domain_by_name {
     my $name = shift;
 
     diag("Removing domain $name");
-    $RAVADA->remove_domain(name => $name, uid => $USER->id);
+    $RAVADA->remove_domain(name => $name, uid => user_admin->id);
 
     my $domain = $RAVADA->search_domain($name, 1);
     die "I can't remove old domain $name"
@@ -77,7 +76,7 @@ sub test_new_domain {
 
     diag("Creating domain $name");
     my $domain = $RAVADA->create_domain(name => $name, id_iso => 1, active => $active
-        , id_owner => $USER->id
+        , id_owner => user_admin->id
         , vm => $BACKEND
     );
 
@@ -115,7 +114,7 @@ sub test_new_domain_iso {
     my $domain;
     eval {
       $domain = $RAVADA->create_domain(name => $name, id_iso => 1, active => $active
-        , id_owner => $USER->id , iso_file => $iso->{device}
+        , id_owner => user_admin->id , iso_file => $iso->{device}
         , vm => $BACKEND
         );
       };
@@ -146,7 +145,7 @@ sub test_new_domain_iso {
 
 sub test_prepare_base {
     my $domain = shift;
-    $domain->prepare_base($USER);
+    $domain->prepare_base(user_admin);
 
     my $sth = $test->dbh->prepare("SELECT is_base FROM domains WHERE name=? ");
     $sth->execute($domain->name);

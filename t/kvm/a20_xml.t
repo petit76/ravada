@@ -18,7 +18,6 @@ my $RVD_BACK = rvd_back($test->connector);
 my $RVD_FRONT= rvd_front($test->connector);
 
 my @VMS = reverse keys %ARG_CREATE_DOM;
-my $USER = create_user("foo","bar");
 
 sub test_create_domain {
     my $vm_name = shift;
@@ -37,7 +36,7 @@ sub test_create_domain {
 
     my $domain;
     eval { $domain = $vm->create_domain(name => $name
-                    , id_owner => $USER->id
+                    , id_owner => user_admin->id
                     , @{$ARG_CREATE_DOM{$vm_name}})
     };
 
@@ -72,7 +71,7 @@ SKIP: {
 
     my $domain = test_create_domain($vm_name);
     $domain->is_public(1);
-    my $clone = $domain->clone(user => $USER, name => new_domain_name());
+    my $clone = $domain->clone(user => user_admin, name => new_domain_name());
 
     ok($clone);
     my @volumes = $clone->list_volumes();
@@ -84,7 +83,7 @@ SKIP: {
     is(scalar @volumes_domain, 2);
 
     my $clone2;
-    eval  { $clone2 = $domain->clone(user => $USER, name => new_domain_name()) };
+    eval  { $clone2 = $domain->clone(user => user_admin, name => new_domain_name()) };
     is($@,'');
     ok($clone2,"Expecting a clone , got ".($clone2 or 'UNDEF'));
 
@@ -93,12 +92,12 @@ SKIP: {
         is(scalar @volumes_clone2, 1);
     }
 
-    $clone->remove($USER);
-    $clone2->remove($USER);
-    $domain->remove_base($USER);
+    $clone->remove(user_admin);
+    $clone2->remove(user_admin);
+    $domain->remove_base(user_admin);
 
     my $clone3;
-    eval  { $clone3 = $domain->clone(user => $USER, name => new_domain_name()) };
+    eval  { $clone3 = $domain->clone(user => user_admin, name => new_domain_name()) };
     is($@,'');
     ok($clone3,"Expecting a clone , got ".($clone3 or 'UNDEF'));
 

@@ -15,7 +15,6 @@ my $test = Test::SQL::Data->new(config => 't/etc/sql.conf');
 
 init($test->connector, $FILE_CONFIG);
 
-my $USER = create_user('foo','bar');
 our $TIMEOUT_SHUTDOWN = 10;
 
 ################################################################
@@ -35,7 +34,7 @@ sub test_create_domain {
 
     my $domain;
     eval { $domain = $vm->create_domain(name => $name
-                    , id_owner => $USER->id
+                    , id_owner => user_admin->id
                     , @{$ARG_CREATE_DOM{$vm_name}})
     };
 
@@ -75,7 +74,7 @@ sub test_drivers_id {
 
         my $req = Ravada::Request->set_driver( 
             id_domain => $domain->id
-            , uid => $USER->id
+            , uid => user_admin->id
             , id_option => $option->{id}
         );
         rvd_back->_process_requests_dont_fork();
@@ -91,7 +90,7 @@ sub test_drivers_id {
             my $value2 = $domain2->get_driver($type);
             is($value2 , $option->{value});
         }
-        $domain->start($USER)   if !$domain->is_active;
+        $domain->start(user_admin)   if !$domain->is_active;
 
         {
             my $domain2 = $vm->search_domain($domain->name);
@@ -101,13 +100,13 @@ sub test_drivers_id {
         }
 
     }
-    $domain->remove($USER);
+    $domain->remove(user_admin);
 }
 
 
 sub _domain_shutdown {
     my $domain = shift;
-    $domain->shutdown_now($USER) if $domain->is_active;
+    $domain->shutdown_now(user_admin) if $domain->is_active;
     for ( 1 .. $TIMEOUT_SHUTDOWN) {
         last if !$domain->is_active;
         sleep 1;

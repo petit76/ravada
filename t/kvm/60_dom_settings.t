@@ -15,7 +15,6 @@ my $test = Test::SQL::Data->new(config => 't/etc/sql.conf');
 
 init($test->connector, $FILE_CONFIG);
 
-my $USER = create_user('foo','bar');
 our $TIMEOUT_SHUTDOWN = 10;
 
 ################################################################
@@ -35,7 +34,7 @@ sub test_create_domain {
 
     my $domain;
     eval { $domain = $vm->create_domain(name => $name
-                    , id_owner => $USER->id
+                    , id_owner => user_admin->id
                     , @{$ARG_CREATE_DOM{$vm_name}})
     };
 
@@ -86,7 +85,7 @@ sub test_drivers_type {
             my $value2 = $domain2->get_driver($type);
             is($value2 , $option->{value});
         }
-        $domain->start($USER)   if !$domain->is_active;
+        $domain->start(user_admin)   if !$domain->is_active;
 
         {
             my $domain2 = $vm->search_domain($domain->name);
@@ -96,7 +95,7 @@ sub test_drivers_type {
         }
 
     }
-    $domain->remove($USER);
+    $domain->remove(user_admin);
 }
 
 sub test_drivers_type_id {
@@ -132,7 +131,7 @@ sub test_drivers_type_id {
             my $value2 = $domain2->get_driver($type);
             is($value2 , $option->{value});
         }
-        $domain->start($USER)   if !$domain->is_active;
+        $domain->start(user_admin)   if !$domain->is_active;
 
         {
             my $domain2 = $vm->search_domain($domain->name);
@@ -142,7 +141,7 @@ sub test_drivers_type_id {
         }
 
     }
-    $domain->remove($USER);
+    $domain->remove(user_admin);
 }
 
 
@@ -185,17 +184,17 @@ sub test_drivers_clone {
         is($domain->get_driver($type), $option->{value}) or next;
         _domain_shutdown($domain);
         is($domain->get_driver($type), $option->{value}) or next;
-        $domain->remove_base($USER);
-        $domain->prepare_base($USER);
+        $domain->remove_base(user_admin);
+        $domain->prepare_base(user_admin);
         $domain->is_public(1);
-        my $clone = $domain->clone(user => $USER, name => $clone_name);
+        my $clone = $domain->clone(user => user_admin, name => $clone_name);
         is($domain->get_driver($type), $option->{value}) or next;
         is($clone->get_driver($type), $option->{value}) or next;
         {
             my $clone2 = $vm->search_domain($clone_name);
             is($clone2->get_driver($type), $option->{value}) or next;
         }
-        $clone->start($USER)   if !$clone->is_active;
+        $clone->start(user_admin)   if !$clone->is_active;
 
         {
             my $domain2 = $vm->search_domain($clone_name);
@@ -209,22 +208,22 @@ sub test_drivers_clone {
             ok(!$@,"Expecting no error, got : ".($@ or ''));
             is($clone->get_driver($type), $option_clone->{value});
 
-            $clone->start($USER)    if !$clone->is_active;
+            $clone->start(user_admin)    if !$clone->is_active;
             is($clone->get_driver($type), $option_clone->{value});
 
         }
         # removing the clone and create again, original driver
-        $clone->remove($USER);
-        my $clone2 = $domain->clone(user => $USER, name => $clone_name);
+        $clone->remove(user_admin);
+        my $clone2 = $domain->clone(user => user_admin, name => $clone_name);
         is($clone2->get_driver($type), $option->{value});
-        $clone2->remove($USER);
+        $clone2->remove(user_admin);
     }
-    $domain->remove($USER);
+    $domain->remove(user_admin);
 }
 
 sub _domain_shutdown {
     my $domain = shift;
-    $domain->shutdown_now($USER) if $domain->is_active;
+    $domain->shutdown_now(user_admin) if $domain->is_active;
     for ( 1 .. $TIMEOUT_SHUTDOWN) {
         last if !$domain->is_active;
         sleep 1;

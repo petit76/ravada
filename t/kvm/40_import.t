@@ -22,7 +22,6 @@ my @ARG_RVD = ( config => $FILE_CONFIG,  connector => $TEST_SQL->connector);
 delete $ARG_CREATE_DOM{Void};
 
 my @VMS = reverse keys %ARG_CREATE_DOM;
-my $USER = create_user("foo","bar");
 
 #############################################################################
 
@@ -39,7 +38,7 @@ sub test_create_domain {
 
     my $domain;
     eval { $domain = $vm->create_domain(name => $name
-                    , id_owner => $USER->id
+                    , id_owner => user_admin->id
                     , @{$ARG_CREATE_DOM{$vm_name}})
     };
 
@@ -50,7 +49,7 @@ sub test_create_domain {
 sub test_wrong_args {
     my ($vm_name, $vm) = @_;
 
-    eval { $RVD_BACK->import_domain( vm => 'nonvm', user => $USER->name, name => 'a') };
+    eval { $RVD_BACK->import_domain( vm => 'nonvm', user => user_admin->name, name => 'a') };
     like($@,qr/unknown VM/i);
 
     eval { $RVD_BACK->import_domain( vm => $vm_name,user => 'nobody', name => 'a') };
@@ -68,7 +67,7 @@ sub test_already_there {
         my $domain_imported = $RVD_BACK->import_domain(
                                         vm => $vm_name
                                      ,name => $domain->name
-                                     ,user => $USER->name
+                                     ,user => user_admin->name
         );
     };
     like($@,qr/already in RVD/i,"Test import fail, expecting error");
@@ -92,7 +91,7 @@ sub test_import {
         $domain = $RVD_BACK->import_domain(
                                         vm => $vm_name
                                      ,name => $dom_name
-                                     ,user => $USER->name
+                                     ,user => user_admin->name
         );
     };
     diag($@) if $@;
@@ -108,11 +107,11 @@ sub test_import_spinoff {
     my $vm = rvd_back->search_vm('kvm');
     my $domain = test_create_domain($vm_name,$vm);
     $domain->is_public(1);
-    my $clone = $domain->clone(name => new_domain_name(), user => $USER);
+    my $clone = $domain->clone(name => new_domain_name(), user => user_admin);
     ok($clone);
     ok($domain->is_base,"Expecting base") or return;
 
-    $clone->remove($USER);
+    $clone->remove(user_admin);
 
     for my $volume ( $domain->list_disks ) {
         my $info = `qemu-img info $volume`;
@@ -133,7 +132,7 @@ sub test_import_spinoff {
         $domain = $RVD_BACK->import_domain(
                                         vm => $vm_name
                                      ,name => $dom_name
-                                     ,user => $USER->name
+                                     ,user => user_admin->name
         );
     };
     diag($@) if $@;
