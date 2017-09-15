@@ -18,7 +18,6 @@ my $test = Test::SQL::Data->new(config => 't/etc/sql.conf');
 my $RAVADA;
 my $VMM;
 my $CONT = 0;
-my $USER;
 
 sub test_req_prepare_base {
     my $name = shift;
@@ -26,7 +25,7 @@ sub test_req_prepare_base {
     my $domain0 =  $RAVADA->search_domain($name);
     ok(!$domain0->is_base,"Domain $name should not be base");
 
-    my $req = Ravada::Request->prepare_base(id_domain => $domain0->id, uid => $USER->id);
+    my $req = Ravada::Request->prepare_base(id_domain => $domain0->id, uid => user_admin->id);
     $RAVADA->_process_all_requests_dont_fork();
 
     ok($req->status('done'),"Request should be done, it is".$req->status);
@@ -48,7 +47,7 @@ sub test_remove_domain {
 
     if ($domain) {
         diag("Removing domain $name");
-        eval { $domain->remove($USER) };
+        eval { $domain->remove(user_admin) };
         ok(!$@ , "Error removing domain $name : $@") or exit;
 
         for my $file ( $domain->list_files_base ) {
@@ -68,7 +67,7 @@ sub test_dont_remove_father {
 
     if ($domain) {
         diag("Removing domain $name");
-        eval { $domain->remove($USER) };
+        eval { $domain->remove(user_admin) };
         ok($@ , "Error removing domain $name with clones should not be allowed");
 
         for my $file ( $domain->list_files_base ) {
@@ -91,7 +90,7 @@ sub test_req_clone {
     my $req = Ravada::Request->create_domain(
         name => $name
         ,id_base => $domain_father->id
-       ,id_owner => $USER->id
+       ,id_owner => user_admin->id
         ,vm => $BACKEND
     );
     ok($req);
@@ -129,7 +128,7 @@ sub test_req_create_domain_iso {
     my $req = Ravada::Request->create_domain( 
             name => $name
          ,id_iso => search_id_iso('debian')
-       ,id_owner => $USER->id
+       ,id_owner => user_admin->id
              ,vm => $BACKEND
     );
     ok($req);
@@ -159,7 +158,7 @@ sub test_force_kvm {
     my $req = Ravada::Request->create_domain(
         name => $name
         ,id_iso => search_id_iso('debian')
-      ,id_owner => $USER->id
+      ,id_owner => user_admin->id
         ,vm => 'kvm'
     );
     ok($req);
@@ -191,7 +190,6 @@ sub test_force_kvm {
 
 #########################################################################
 eval { $RAVADA = rvd_back( $test->connector , 't/etc/ravada.conf') };
-$USER = create_user('foo','bar')    if $RAVADA;
 
 ok($RAVADA,"I can't launch a new Ravada");# or exit;
 

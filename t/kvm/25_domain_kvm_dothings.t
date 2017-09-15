@@ -19,15 +19,13 @@ my $RAVADA = rvd_back( $test->connector , 't/etc/ravada.conf');
 my $REMOTE_VIEWER = `which remote-viewer`;
 chomp $REMOTE_VIEWER;
 
-my $USER = create_user('foo','bar');
-
 
 ##############################################################
 #
 
 sub test_remove_domain {
     my $name = shift;
-    my $user = ( shift or $USER);
+    my $user = ( shift or user_admin);
 
     my $domain;
     $domain = $RAVADA->search_domain($name,1);
@@ -63,12 +61,12 @@ my $domain = $VMM->create_domain(
           name => $name
       , id_iso => 1 
       , active => 0
-    , id_owner => $USER->id
+    , id_owner => user_admin->id
 );
 
 
 ok($domain,"Expected a domain class, got :".ref($domain)) and do {
-    $domain->shutdown(timeout => 5, user => $USER) if $domain->is_active;
+    $domain->shutdown(timeout => 5, user => user_admin) if $domain->is_active;
 
     for ( 1 .. 10 ){
         last if !$domain->is_active;
@@ -81,11 +79,11 @@ ok($domain,"Expected a domain class, got :".ref($domain)) and do {
     }
 
     ok(! $domain->is_active, "I can't shut down the domain") and do {
-        $domain->start( $USER );
+        $domain->start( user_admin );
         ok($domain->is_active,"I don't see the domain active");
 
         if ($domain->is_active) {
-            $domain->shutdown(timeout => 3, user => $USER);
+            $domain->shutdown(timeout => 3, user => user_admin);
         }
         ok(!$domain->is_active."Domain won't shut down") and do {
             test_remove_domain($name);

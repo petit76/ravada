@@ -23,8 +23,6 @@ my ($DOMAIN_NAME) = $0 =~ m{.*/(.*)\.};
 my $DOMAIN_NAME_SON=$DOMAIN_NAME."_son";
 $DOMAIN_NAME_SON =~ s/base_//;
 
-my $USER = create_user('foo','bar');
-
 sub test_vm_kvm {
     my $vm = $RAVADA->vm->[0];
     ok($vm,"No vm found") or exit;
@@ -67,7 +65,7 @@ sub test_new_domain_from_iso {
     eval { $domain = $RAVADA->create_domain(name => $name
                                         , id_iso => 1
                                         ,vm => $BACKEND
-                                        ,id_owner => $USER->id
+                                        ,id_owner => user_admin->id
             ) 
     };
     ok(!$@,"Domain $name not created: $@");
@@ -129,7 +127,7 @@ sub test_prepare_base {
 
     ok(!grep(/^$name$/,map { $_->name } @list),"$name shouldn't be a base ".Dumper(\@list));
 
-    $domain->prepare_base($USER);
+    $domain->prepare_base(user_admin);
 
     my $sth = $test->dbh->prepare("SELECT * FROM domains WHERE name=? ");
     $sth->execute($domain->name);
@@ -164,7 +162,7 @@ sub test_new_domain_from_base {
     eval { $domain = $RAVADA->create_domain(
                 name => $name
             ,id_base => $base->id
-           ,id_owner => $USER->id
+           ,id_owner => user_admin->id
             ,vm => $BACKEND
     );
     };

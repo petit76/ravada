@@ -15,7 +15,6 @@ my $FILE_CONFIG = 't/etc/ravada.conf';
 
 my @VMS = reverse keys %ARG_CREATE_DOM;
 init($test->connector);
-my $USER = create_user("foo","bar");
 my $DISPLAY_IP = '99.1.99.1';
 
 our $TIMEOUT_SHUTDOWN = 10;
@@ -38,7 +37,7 @@ sub test_create_domain {
 
     my $domain;
     eval { $domain = $vm->create_domain(name => $name
-                    , id_owner => $USER->id
+                    , id_owner => user_admin->id
                     , @{$ARG_CREATE_DOM{$vm_name}})
     };
 
@@ -84,15 +83,15 @@ sub test_prepare_base_active {
     my $domain = test_create_domain($vm_name);
 
     ok(!$domain->is_base,"Domain ".$domain->name." should not be base") or return;
-    eval { $domain->start($USER) if !$domain->is_active() };
+    eval { $domain->start(user_admin) if !$domain->is_active() };
     ok(!$@,$@) or exit;
-    eval { $domain->resume($USER)  if $domain->is_paused()  };
+    eval { $domain->resume(user_admin)  if $domain->is_paused()  };
     ok(!$@,$@);
 
     ok($domain->is_active,"[$vm_name] Domain ".$domain->name." should be active") or return;
     ok(!$domain->is_paused,"[$vm_name] Domain ".$domain->name." should not be paused") or return;
 
-    eval{ $domain->prepare_base($USER) };
+    eval{ $domain->prepare_base(user_admin) };
     ok(!$@,"[$vm_name] Prepare base, expecting error='', got '$@'") or exit;
 
     ok($domain->is_active,"[$vm_name] Domain ".$domain->name." should be active") or return;
@@ -109,14 +108,14 @@ sub test_prepare_base {
     ok($vm,"I can't find VM $vm_name") or return;
     
     test_files_base($domain,0);
-    $domain->shutdown_now($USER)    if $domain->is_active();
+    $domain->shutdown_now(user_admin)    if $domain->is_active();
 
-    eval { $domain->prepare_base( $USER) };
+    eval { $domain->prepare_base( user_admin) };
     ok(!$@, $@);
     ok($domain->is_base);
     is($domain->is_active(),0);
 
-    eval { $domain->prepare_base( $USER) };
+    eval { $domain->prepare_base( user_admin) };
     my $description = "This is a description test";
     add_description($domain, $description);
 
@@ -128,11 +127,11 @@ sub test_prepare_base {
     test_files_base($domain,1);
 
     my @disk = $domain->disk_device();
-    $domain->shutdown(user => $USER)    if $domain->is_active;
+    $domain->shutdown(user => user_admin)    if $domain->is_active;
 
     touch_mtime(@disk);
 
-    eval { $domain->prepare_base( $USER) };
+    eval { $domain->prepare_base( user_admin) };
     is($@,'');
     ok($domain->is_base);
 
@@ -143,7 +142,7 @@ sub test_prepare_base {
     $domain->is_public(1);
     eval { $domain_clone = $vm->create_domain(
         name => $name_clone
-        ,id_owner => $USER->id
+        ,id_owner => user_admin->id
         ,id_base => $domain->id
         ,vm => $vm_name
         ,description => $domain->description
@@ -157,9 +156,9 @@ sub test_prepare_base {
 
     my $domain_clone2 = rvd_front->search_clone(
          id_base => $domain->id,
-        id_owner => $USER->id
+        id_owner => user_admin->id
     );
-    #ok($domain_clone2,"Searching for clone id_base=".$domain->id." user=".$USER->id
+    #ok($domain_clone2,"Searching for clone id_base=".$domain->id." user=".user_admin->id
     #    ." expecting domain , got nothing "
     #    ." ".Dumper($domain_clone)) or exit;
 
@@ -174,15 +173,15 @@ sub test_prepare_base {
     }
 
     touch_mtime(@disk);
-    eval { $domain->prepare_base($USER) };
+    eval { $domain->prepare_base(user_admin) };
     ok($@ && $@ =~ /has \d+ clones/i
         ,"[$vm_name] Don't prepare if there are clones ".($@ or '<UNDEF>'));
     ok($domain->is_base);
 
-    $domain_clone->remove($USER);
+    $domain_clone->remove(user_admin);
 
     touch_mtime(@disk);
-    eval { $domain->prepare_base($USER) };
+    eval { $domain->prepare_base(user_admin) };
 
     ok(!$@,"[$vm_name] Error preparing base after clone removed :'".($@ or '')."'");
     ok($domain->is_base,"[$vm_name] Expecting domain is_base=1 , got :".$domain->is_base);
@@ -228,13 +227,13 @@ sub test_remove_base {
     my @files0 = $domain->list_files_base();
     ok(!scalar @files0,"Expecting no files base, got ".Dumper(\@files0)) or return;
 
-    $domain->prepare_base($USER);
+    $domain->prepare_base(user_admin);
     ok($domain->is_base,"Domain ".$domain->name." should be base") or return;
 
     my @files = $domain->list_files_base();
     ok(scalar @files,"Expecting files base, got ".Dumper(\@files)) or return;
 
-    $domain->remove_base($USER);
+    $domain->remove_base(user_admin);
     ok(!$domain->is_base,"Domain ".$domain->name." should be base") or return;
 
     for my $file (@files) {
