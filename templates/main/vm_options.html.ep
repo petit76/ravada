@@ -1,7 +1,18 @@
 <div class="panel-body">
 <div class="form-group">
-
+% use Data::Dumper;
     <form class="form-inline" action="<%= $action %>" method="post">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="input-group input-lg">
+                    <div class="input-group-addon"><b>Internal IP</b></div>
+%                  if ($domain->is_active ) {
+                    <input class="form-control" type="text" name="ram" size="5" disabled
+                    value="<%= Dumper($domain->domain->get_interface_addresses(Sys::Virt::Domain::INTERFACE_ADDRESSES_SRC_LEASE)) %>">
+%                   }
+                </div>
+            </div>
+        </div>
         <div class="row">
             <div class="col-md-6">
 
