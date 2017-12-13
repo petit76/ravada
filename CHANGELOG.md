@@ -23,3 +23,4 @@
 - Check and add graphics params in xml definition [\#473]
 - Public checkbox does nothing [\#472]
 - libvirt error code: 1, message: internal error: client socket is closed [\#493]
+- Refresh with many storage pools in KVM fails [\#478]
