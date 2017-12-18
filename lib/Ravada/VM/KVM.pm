@@ -978,7 +978,7 @@ sub _download($self, $url) {
     my $ua = $self->_web_user_agent();
     my $res;
     for ( 1 .. 10 ) {
-        eval { $res = $ua->get($url)->result };
+        eval { $res = $ua->get($url)->res};
         last if $res;
     }
     die $@ if $@;
@@ -1109,7 +1109,7 @@ sub _match_file($self, $url, $file_re) {
 
     my $res;
     for ( 1 .. 10 ) {
-        eval { $res = $self->_web_user_agent->get($url)->result(); };
+        eval { $res = $self->_web_user_agent->get($url)->res(); };
         last if !$@;
         next if $@ && $@ =~ /timeout/i;
         die $@;
