@@ -165,6 +165,9 @@ ravadaApp.directive("solShowMachine", swMach)
               $scope.images = response.data;
         });
     };
+    $scope.refresh_machines=function() {
+      $scope.getMachines
+    }
 
 
     //On load code
