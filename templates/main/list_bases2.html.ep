@@ -100,6 +100,7 @@
 %			if ($user->can_change_settings){
                         <a align="right" href="/machine/settings/<%= $machine->{id_clone} %>.html"><i class="fa fa-fw fa-cog" title="<%=l 'Settings' %>"></a></i>
 %      							}
+%     if ($user->can_remove || $user->can_remove_clone || $user->can_remove_clone_all) {
                     <div ng-show="host_restore == <%= $machine->{id_clone} %>">
                         <b><%=l 'Restore' %></b> <%=l 'will remove all the contents of the machine' %>
                         <i><b><%= $machine->{name_clone} %></b></i>.
@@ -111,6 +112,7 @@
                             ng-click="restore(<%= $machine->{id_clone} %>)"
                             ><%=l 'Yes' %></a>
                     </div>
+%     }
                     <div ng-show="host_shutdown == <%= $machine->{id_clone} %>">
                             <b>Shutting down ... </b>
                             It may take a couple of minutes.

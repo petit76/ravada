@@ -258,19 +258,27 @@ sub _allow_manage {
 
 sub _allow_remove($self, $user) {
 
+    warn "third self ".$self->id;
     confess "ERROR: Undefined user" if !defined $user;
 
     die "ERROR: remove not allowed for user ".$user->name
-        if (!$user->can_remove());
+        if (!$user->can_remove() || !$user->can_remove_clone_all());
 
     $self->_check_has_clones() if $self->is_known();
+    warn "fourth self ".$self->id;
     if ( $self->is_known
         && $self->id_base
         && ($user->can_remove_clone() || $user->can_remove_clone_all())
     ) {
+       warn "ANTES OPEN ".$self->id;
         my $base = $self->open($self->id_base);
-        return if ($user->can_remove_clone_all() || ($base->id_owner == $user->id));
+        warn "DESPUES OPEN ".$self->id;
+        warn "self->id_owner ".$self->id_owner;
+        warn "user->id ".$user->id;
+        return if ($user->can_remove_clone_all() || ($base->id_owner == $user->id)
+                   || ($user->can_remove_clone() && $self->id_owner == $user->id));
     }
+    warn "6 self ".$self->id;
     $self->_allowed($user);
 
 }
@@ -786,7 +794,9 @@ sub pre_remove { }
 sub _pre_remove_domain($self, $user=undef) {
 
     eval { $self->id };
+    warn "first self ".$self->id;
     $self->pre_remove();
+    warn "second self ".$self->id;
     $self->_allow_remove($user);
     $self->pre_remove();
     $self->_remove_iptables()   if $self->is_known();

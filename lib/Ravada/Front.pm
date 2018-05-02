@@ -713,7 +713,7 @@ sub search_domain_by_id {
     my $self = shift;
       my $id = shift;
 
-    my $sth = $CONNECTOR->dbh->prepare("SELECT name, id, id_base, is_base FROM domains WHERE id=?");
+    my $sth = $CONNECTOR->dbh->prepare("SELECT name, id, id_base, is_base, id_owner FROM domains WHERE id=?");
     $sth->execute($id);
 
     my $row = $sth->fetchrow_hashref;

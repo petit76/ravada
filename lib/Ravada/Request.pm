@@ -175,7 +175,6 @@ sub remove_domain {
     confess "Missing domain name"   if !$args{name};
     confess "Name is not scalar"    if ref($args{name});
     confess "Missing uid"           if !$args{uid};
-
     for (keys %args) {
         confess "Invalid argument $_" if !$VALID_ARG{'remove_domain'}->{$_};
     }

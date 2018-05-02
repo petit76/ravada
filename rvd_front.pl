@@ -392,7 +392,11 @@ get '/machine/shutdown/(:id).(:type)' => sub {
 
 any '/machine/remove/(:id).(:type)' => sub {
         my $c = shift;
-	return access_denied($c)       if (!$USER -> can_remove());
+        my ($domain) = _search_requested_machine($c);
+        warn $domain->id_owner;
+	      return access_denied($c)       if (!$USER -> can_remove() && 
+                                        !($USER->can_remove_clone && $domain->is_base == 0 
+                                        && $domain->id_owner == $USER->id));
         return remove_machine($c);
 };
 
@@ -1542,12 +1546,10 @@ sub _do_remove_machine {
     return login($c) if !_logged_in($c);
 
     my $domain = _search_requested_machine($c);
-
     my $req = Ravada::Request->remove_domain(
         name => $domain->name
         ,uid => $USER->id
     );
-
     $c->render(json => { request => $req->id});
 }
 

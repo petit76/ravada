@@ -347,7 +347,6 @@ sub is_operator {
         || $self->can_shutdown_clone()
 	|| $self->can_hibernate_clone()
 	|| $self->can_change_settings_clones()
-        || $self->can_remove_clone()
         || $self->can_remove_clone_all()
         || $self->can_create_base()
         || $self->can_create_machine();
@@ -365,6 +364,7 @@ sub can_list_own_machines {
         if $self->can_create_base()
             || $self->can_create_machine()
             || $self->can_remove_clone_all()
+            || $self->can_remove_clone()
         ;
     return 0;
 }
