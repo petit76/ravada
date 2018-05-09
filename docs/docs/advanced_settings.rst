@@ -62,7 +62,7 @@ set a default *storage_pool* like this:
 
     $ mysql -u rvd_user -p ravada
     mysql> select * from vms;
-    mysql> UPDATE vms set storage_pool='pool2' where id=*id*;
+    mysql> UPDATE vms set default_storage='pool2' where id=*id*;
 
 Then restart rvd_back running *systemctl restart rvd_back*.
 
